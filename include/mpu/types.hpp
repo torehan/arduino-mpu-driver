@@ -66,11 +66,11 @@ typedef enum {
 static constexpr mpu_i2caddr_t MPU_DEFAULT_I2CADDRESS = MPU_I2CADDRESS_AD0_LOW;
 
 #ifdef CONFIG_MPU_I2C
-typedef Adafruit_I2CDevice mpu_dev_t;                 /*!< Communication bus type, `I2Cbus` or `SPIbus`. */
+typedef Adafruit_I2CDevice mpu_bus_t;                 /*!< Communication bus type, `I2Cbus` or `SPIbus`. */
 typedef mpu_i2caddr_t mpu_addr_handle_t; /*!< MPU Address/Handle type, `mpu_i2caddr_t` or `spi_device_handle_t` */
 static constexpr mpu_addr_handle_t MPU_DEFAULT_ADDR_HANDLE = MPU_DEFAULT_I2CADDRESS;
 #elif defined CONFIG_MPU_SPI
-typedef Adafruit_SPIDevice mpu_dev_t;
+typedef Adafruit_SPIDevice mpu_bus_t;
 #endif
 
 #if defined CONFIG_MPU6050
