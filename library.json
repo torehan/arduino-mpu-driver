@@ -1,11 +1,7 @@
 {
     "name": "arduino-mpu-driver",
     "keywords": "MPU",
-<<<<<<< HEAD
     "description": "A library for Invensense MPU chips. Ported from esp32-MPU-driver library",
-    "version": "0.0.1",
-    "license": "MIT",
-=======
     "version": "0.0.1",
     "license":"MIT",
     "frameworks": ["arduino"],
@@ -19,18 +15,14 @@
       "type": "git",
       "url": "https://github.com/torehan/arduino-mpu-driver.git"
     },
->>>>>>> initial commit
     "dependencies": [
         {
           "name": "DebugLog",
           "version": "https://github.com/hideakitai/DebugLog.git"
-<<<<<<< HEAD
-=======
-        },
+        },        
         {
-          "name": "Adafruit_BusIO",
+          "name": "adafruit/Adafruit_BusIO",
           "version": "https://github.com/adafruit/Adafruit_BusIO.git"
->>>>>>> initial commit
         }
       ]
 }
