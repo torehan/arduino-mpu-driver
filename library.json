@@ -1,0 +1,13 @@
+{
+    "name": "arduino-mpu-driver",
+    "keywords": "MPU",
+    "description": "A library for Invensense MPU chips. Ported from esp32-MPU-driver library",
+    "version": "0.0.1",
+    "license": "MIT",
+    "dependencies": [
+        {
+          "name": "DebugLog",
+          "version": "https://github.com/hideakitai/DebugLog.git"
+        }
+      ]
+}
