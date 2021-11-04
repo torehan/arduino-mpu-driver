@@ -20,15 +20,15 @@
 // #include "esp_log.h"
 #include "DebugLog.h"
 #include "config_mpu_lib.h"
-
+#include "types.hpp"
 // Note: declare TAG before include this header
 // Note: include only in .cpp files from this library
 
-#define MPU_LOGE(format, ...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_ERROR)   { LOG_ERROR(...); }
-#define MPU_LOGW(format, ...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_WARN)    { LOG_WARM(...); }
-#define MPU_LOGI(format, ...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_INFO)    { LOG_INFO(...); }
-#define MPU_LOGD(format, ...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_DEBUG)   { LOG_DEBUG(...); }
-#define MPU_LOGV(format, ...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_VERBOSE) { LOG_TRACE(...); }
+#define MPU_LOGE(...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_ERROR)   { LOG_ERROR(...); }
+#define MPU_LOGW(...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_WARN)    { LOG_WARM(...); }
+#define MPU_LOGI(...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_INFO)    { LOG_INFO(...); }
+#define MPU_LOGD(...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_DEBUG)   { LOG_DEBUG(...); }
+#define MPU_LOGV(...) if (CONFIG_MPU_LOG_LEVEL >= MPU_LOG_VERBOSE) { LOG_TRACE(...); }
 
 #define MPU_LOGEMSG(msg, format, ...) MPU_LOGE("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
 #define MPU_LOGWMSG(msg, format, ...) MPU_LOGW("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)

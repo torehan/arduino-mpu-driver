@@ -227,7 +227,7 @@ class MPU
     bool writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data);
     bool writeBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data);
     bool writeByte(uint8_t regAddr, uint8_t data);
-    bool writeBytes(uint8_t regAddr, size_t length, const uint8_t* data);
+    bool writeBytes(uint8_t regAddr, size_t length, uint8_t* data);
     bool registerDump(uint8_t start = 0x0, uint8_t end = 0x7F);
     //! \}
     //! \name Sensor readings
