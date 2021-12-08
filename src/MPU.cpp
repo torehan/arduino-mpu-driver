@@ -12,7 +12,7 @@
 #include "MPU.hpp"
 #include <math.h>
 #include <string.h>
-// #include "esp_err.h"
+// #include "MPU_err.h"
 // #include "freertos/FreeRTOS.h"
 // #include "freertos/portmacro.h"
 // #include "freertos/task.h"
@@ -98,7 +98,7 @@ int MPU::initialize()
 int MPU::reset()
 {
     if (MPU_ERR_CHECK(writeBit(regs::PWR_MGMT1, regs::PWR1_DEVICE_RESET_BIT, 1))) return err;
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    delay(100);
 #ifdef CONFIG_MPU_SPI
     if (MPU_ERR_CHECK(resetSignalPath())) {
         return err;
@@ -133,8 +133,8 @@ bool MPU::getSleep()
  * @brief Test connection with MPU.
  * @details It reads the WHO_AM_IM register and check its value against the correct chip model.
  * @return
- *  - `ESP_OK`: The MPU is connected and matchs the model.
- *  - `ESP_ERR_NOT_FOUND`: A device is connect, but does not match the chip selected in _menuconfig_.
+ *  - `MPU_OK`: The MPU is connected and matchs the model.
+ *  - `MPU_ERR_NOT_FOUND`: A device is connect, but does not match the chip selected in _menuconfig_.
  *  - May return other communication bus errors. e.g: `ESP_FAIL`, `intIMEOUT`.
  * */
 int MPU::testConnection()
@@ -142,15 +142,15 @@ int MPU::testConnection()
     const uint8_t wai = whoAmI();
     if (MPU_ERR_CHECK(lastError())) return err;
 #if defined CONFIG_MPU6000 || defined CONFIG_MPU6050 || defined CONFIG_MPU9150
-    return (wai == 0x68) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x68) ? MPU_OK : MPU_ERR_NOT_FOUND;
 #elif defined CONFIG_MPU9255
-    return (wai == 0x73) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x73) ? MPU_OK : MPU_ERR_NOT_FOUND;
 #elif defined CONFIG_MPU9250
-    return (wai == 0x71) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x71) ? MPU_OK : MPU_ERR_NOT_FOUND;
 #elif defined CONFIG_MPU6555
-    return (wai == 0x7C) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x7C) ? MPU_OK : MPU_ERR_NOT_FOUND;
 #elif defined CONFIG_MPU6500
-    return (wai == 0x70) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x70) ? MPU_OK : MPU_ERR_NOT_FOUND;
 #endif
 }
 
@@ -193,7 +193,7 @@ int MPU::setSampleRate(uint16_t rate)
         rate = 1000;
     }
 
-#if CONFIG_MPU_LOG_LEVEL >= ESP_LOG_WARN
+#if CONFIG_MPU_LOG_LEVEL >= MPU_LOG_WARN
         // Check selected Fchoice [MPU6500 and MPU9250 only]
 #ifdef CONFIG_MPU6500
     fchoice_t fchoice = getFchoice();
@@ -326,7 +326,7 @@ dlpf_t MPU::getDigitalLowPassFilter()
 int MPU::resetSignalPath()
 {
     if (MPU_ERR_CHECK(writeBit(regs::USER_CTRL, regs::USERCTRL_SIG_COND_RESET_BIT, 1))) return err;
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    delay(100);
     return err;
 }
 
@@ -483,7 +483,7 @@ int MPU::setMotionFeatureEnabled(bool enable)
         if (MPU_ERR_CHECK(setDigitalLowPassFilter(kDLPF))) return err;
 #if defined CONFIG_MPU6050
         // give a time for accumulation of samples
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        delay(10);
         if (MPU_ERR_CHECK(
                 writeBits(regs::ACCEL_CONFIG, regs::ACONFIG_HPF_BIT, regs::ACONFIG_HPF_LENGTH, ACCEL_DHPF_HOLD))) {
             return err;
@@ -1259,7 +1259,7 @@ int MPU::readFIFO(size_t length, uint8_t* data)
 /**
  * @brief Write data to FIFO buffer.
  * */
-int MPU::writeFIFO(size_t length, const uint8_t* data)
+mpu_err_t MPU::writeFIFO(size_t length, const uint8_t* data)
 {
     return MPU_ERR_CHECK(writeBytes(regs::FIFO_R_W, length, data));
 }
@@ -1485,10 +1485,10 @@ int MPU::readAuxI2CRxData(size_t length, uint8_t* data, size_t skip)
 {
     if (length + skip > 24) {
         MPU_LOGEMSG(msgs::INVALID_LENGTH, " %d, mpu has only 24 external sensor data registers!", length);
-        return err = ESP_ERR_INVALID_SIZE;
+        return err = MPU_ERR_INVALID_SIZE;
     }
 // check if I2C Master is enabled, just for warning and debug
-#if CONFIG_MPU_LOG_LEVEL >= ESP_LOG_WARN
+#if CONFIG_MPU_LOG_LEVEL >= MPU_LOG_WARN
     const bool kAuxI2CEnabled = getAuxI2CEnabled();
     if (MPU_ERR_CHECK(lastError())) return err;
     if (!kAuxI2CEnabled) MPU_LOGWMSG(msgs::AUX_I2C_DISABLED, ", better turn on.");
@@ -1528,9 +1528,9 @@ auxi2c_stat_t MPU::getAuxI2CStatus()
  * @attention Auxiliary I2C Master must have already been configured before calling this function.
  *
  * @return
- *  - `ESP_ERR_INVALID_STATE`: Auxiliary I2C Master not enabled;
- *  - `ESP_ERR_NOT_FOUND`:     Slave doesn't ACK the transfer;
- *  - `ESP_FAIL`:               Auxiliary I2C Master lost arbitration of the bus;
+ *  - `MPU_ERR_INVALID_STATE`: Auxiliary I2C Master not enabled;
+ *  - `MPU_ERR_NOT_FOUND`:     Slave doesn't ACK the transfer;
+ *  - `MPU_FAIL`:               Auxiliary I2C Master lost arbitration of the bus;
  *  - or other standard I2C driver error codes.
  * */
 int MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
@@ -1540,7 +1540,7 @@ int MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
     if (MPU_ERR_CHECK(lastError())) return err;
     if (!kAuxI2CEnabled) {
         MPU_LOGEMSG(msgs::AUX_I2C_DISABLED, ", must enable first");
-        return err = ESP_ERR_INVALID_STATE;
+        return err = MPU_ERR_INVALID_STATE;
     }
     // data for regs::I2C_SLV4_ADDR
     buffer[0] = AUXI2C_WRITE << regs::I2C_SLV_RNW_BIT;
@@ -1556,26 +1556,26 @@ int MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
     // enable transfer in slave 4
     if (MPU_ERR_CHECK(writeBit(regs::I2C_SLV4_CTRL, regs::I2C_SLV4_EN_BIT, 1))) return err;
     // check status until transfer is done
-    TickType_t startTick = xTaskGetTickCount();
-    TickType_t endTick   = startTick + pdMS_TO_TICKS(1000);
+    unsigned long startTick = millis();
+    unsigned long endTick   = startTick + 1000; // in miliseconds
     auxi2c_stat_t status;
     do {
         if (MPU_ERR_CHECK(readByte(regs::I2C_MST_STATUS, &status))) return err;
         if (status & (1 << regs::I2CMST_STAT_SLV4_NACK_BIT)) {
             MPU_LOGWMSG(msgs::AUX_I2C_SLAVE_NACK, "");
-            return err = ESP_ERR_NOT_FOUND;
+            return err = MPU_ERR_NOT_FOUND;
         }
         if (status & (1 << regs::I2CMST_STAT_LOST_ARB_BIT)) {
             MPU_LOGWMSG(msgs::AUX_I2C_LOST_ARB, "");
-            return err = ESP_FAIL;
+            return err = MPU_FAIL;
         }
-        if (xTaskGetTickCount() >= endTick) {
+        if (millis() >= endTick) {
             MPU_LOGEMSG(msgs::TIMEOUT, ". Aux I2C might've hung. Restart it.");
-            return err = intIMEOUT;
+            return err = MPU_BUS_TIMEOUT;
         }
     } while (!(status & (1 << regs::I2C_SLV4_DONE_INT_BIT)));
 
-    return err = ESP_OK;
+    return err = MPU_OK;
 }
 
 /**
@@ -1587,9 +1587,9 @@ int MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
  * @attention Auxiliary I2C Master must have already been configured before calling this function.
  *
  * @return
- *  - ESP_ERR_INVALID_STATE  Auxiliary I2C Master not enabled;
- *  - ESP_ERR_NOT_FOUND      Slave doesn't ACK the transfer;
- *  - ESP_FAIL               Auxiliary I2C Master lost arbitration of the bus;
+ *  - MPU_ERR_INVALID_STATE  Auxiliary I2C Master not enabled;
+ *  - MPU_ERR_NOT_FOUND      Slave doesn't ACK the transfer;
+ *  - MPU_FAIL               Auxiliary I2C Master lost arbitration of the bus;
  *  - or other standard I2C driver error codes.
  * */
 int MPU::auxI2CReadByte(uint8_t devAddr, uint8_t regAddr, uint8_t* data)
@@ -1599,7 +1599,7 @@ int MPU::auxI2CReadByte(uint8_t devAddr, uint8_t regAddr, uint8_t* data)
     if (MPU_ERR_CHECK(lastError())) return err;
     if (!kAuxI2CEnabled) {
         MPU_LOGEMSG(msgs::AUX_I2C_DISABLED, ", must enable first");
-        return err = ESP_ERR_INVALID_STATE;
+        return err = MPU_ERR_INVALID_STATE;
     }
     // data for regs::I2C_SLV4_ADDR
     buffer[0] = AUXI2C_READ << regs::I2C_SLV_RNW_BIT;
@@ -1613,22 +1613,22 @@ int MPU::auxI2CReadByte(uint8_t devAddr, uint8_t regAddr, uint8_t* data)
     // enable transfer in slave 4
     if (MPU_ERR_CHECK(writeBit(regs::I2C_SLV4_CTRL, regs::I2C_SLV4_EN_BIT, 1))) return err;
     // check status until transfer is done
-    TickType_t startTick = xTaskGetTickCount();
-    TickType_t endTick   = startTick + pdMS_TO_TICKS(1000);
+    unsigned long startTick = millis();
+    unsigned long endTick   = startTick + 1000; // in miliseconds
     auxi2c_stat_t status;
     do {
         if (MPU_ERR_CHECK(readByte(regs::I2C_MST_STATUS, &status))) return err;
         if (status & (1 << regs::I2CMST_STAT_SLV4_NACK_BIT)) {
             MPU_LOGWMSG(msgs::AUX_I2C_SLAVE_NACK, "");
-            return err = ESP_ERR_NOT_FOUND;
+            return err = MPU_ERR_NOT_FOUND;
         }
         if (status & (1 << regs::I2CMST_STAT_LOST_ARB_BIT)) {
             MPU_LOGWMSG(msgs::AUX_I2C_LOST_ARB, "");
-            return err = ESP_FAIL;
+            return err = MPU_FAIL;
         }
-        if (xTaskGetTickCount() >= endTick) {
+        if (millis() >= endTick) {
             MPU_LOGEMSG(msgs::TIMEOUT, ". Aux I2C might've hung. Restart it.");
-            return err = intIMEOUT;
+            return err = MPU_BUS_TIMEOUT;
         }
     } while (!(status & (1 << regs::I2C_SLV4_DONE_INT_BIT)));
     // get read value
@@ -1685,10 +1685,10 @@ bool MPU::getFsyncEnabled()
  * @param start first register number.
  * @param end last register number.
  */
-int MPU::registerDump(uint8_t start, uint8_t end)
+mpu_err_t MPU::registerDump(uint8_t start, uint8_t end)
 {
     constexpr uint8_t kNumOfRegs = 128;
-    if (end - start < 0 || start >= kNumOfRegs || end >= kNumOfRegs) return err = ESP_FAIL;
+    if (end - start < 0 || start >= kNumOfRegs || end >= kNumOfRegs) return err = MPU_FAIL;
     printf(LOG_COLOR_W ">> " CONFIG_MPU_CHIP_MODEL " register dump:" LOG_RESET_COLOR "\n");
     uint8_t data;
     for (int i = start; i <= end; i++) {
@@ -1814,7 +1814,7 @@ int MPU::compassTestConnection()
 {
     const uint8_t wai = compassWhoAmI();
     if (MPU_ERR_CHECK(lastError())) return err;
-    return (wai == 0x48) ? ESP_OK : ESP_ERR_NOT_FOUND;
+    return (wai == 0x48) ? MPU_OK : MPU_ERR_NOT_FOUND;
 }
 
 /**
@@ -1922,10 +1922,10 @@ int MPU::compassSetMode(mag_mode_t mode)
     }
     else {
         MPU_LOGEMSG(msgs::NOT_SUPPORTED, " yet");
-        return err = ESP_ERR_NOT_SUPPORTED;
+        return err = MPU_ERR_NOT_SUPPORTED;
     }
 
-    return err = ESP_OK;
+    return err = MPU_OK;
 }
 
 /**
@@ -2093,7 +2093,7 @@ int MPU::selfTest(selftest_t* result)
 #ifdef CONFIG_MPU6050
     constexpr accel_fs_t kAccelFS = ACCEL_FS_16G;
     constexpr gyro_fs_t kGyroFS   = GYRO_FS_250DPS;
-#elif CONFIG_MPU6500
+#elif defined CONFIG_MPU6500
     constexpr accel_fs_t kAccelFS = ACCEL_FS_2G;
     constexpr gyro_fs_t kGyroFS   = GYRO_FS_250DPS;
 #endif
@@ -2369,10 +2369,10 @@ int MPU::getBiases(accel_fs_t accelFS, gyro_fs_t gyroFS, raw_axes_t* accelBias, 
         }
     }
     // wait for 200ms for sensors to stabilize
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    delay(200);
     // fill FIFO for 100ms
     if (MPU_ERR_CHECK(resetFIFO())) return err;
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    delay(100);
     if (MPU_ERR_CHECK(setFIFOConfig(FIFO_CFG_NONE))) return err;
     // get FIFO count
     const uint16_t fifoCount = getFIFOCount();

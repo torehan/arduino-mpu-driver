@@ -31,6 +31,7 @@
 // #define CONFIG_MPU_LOG_LEVEL_DEBUG
 // #define CONFIG_MPU_LOG_LEVEL_VERBOSE
 
-
+#define LOG_COLOR_W "\033[0;31m"
+#define LOG_RESET_COLOR "\033[0;32m"
 
 #endif

@@ -69,19 +69,15 @@ class MPU
     //! \name Constructors / Destructor
     //! \{
     MPU();
-    explicit MPU(mpu_bus_t* bus);
-    #ifdef CONFIG_MPU_SPI
-        MPU(mpu_bus_t* bus);
-    #elif defined CONFIG_MPU_I2C
-        MPU(mpu_bus_t* bus, mpu_addr_handle_t addr);
-    #endif
+    explicit MPU(mpu_bus_t& bus);
+    // MPU(mpu_bus_t& bus, mpu_addr_handle_t addr);
     ~MPU();
     //! \}
     //! \name Basic
     //! \{
-    MPU& setBus(mpu_bus_t* bus);
+    // MPU& setBus(mpu_bus_t& bus);
     // MPU& setAddr(mpu_addr_handle_t addr);
-    mpu_bus_t* getBus();
+    // mpu_bus_t& getBus();
     // mpu_addr_handle_t getAddr();
     int lastError();
     //! \}
@@ -145,7 +141,7 @@ class MPU
     int resetFIFO();
     uint16_t getFIFOCount();
     int readFIFO(size_t length, uint8_t* data);
-    int writeFIFO(size_t length, const uint8_t* data);
+    mpu_err_t writeFIFO(size_t length, const uint8_t* data);
     fifo_mode_t getFIFOMode();
     fifo_config_t getFIFOConfig();
     bool getFIFOEnabled();
@@ -220,15 +216,15 @@ class MPU
     //! \name Read / Write
     //! Functions to perform direct read or write operation(s) to registers.
     //! \{
-    bool readBit(uint8_t regAddr, uint8_t bitNum, uint8_t* data);
-    bool readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t* data);
-    bool readByte(uint8_t regAddr, uint8_t* data);
-    bool readBytes(uint8_t regAddr, size_t length, uint8_t* data);
-    bool writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data);
-    bool writeBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data);
-    bool writeByte(uint8_t regAddr, uint8_t data);
-    bool writeBytes(uint8_t regAddr, size_t length, uint8_t* data);
-    bool registerDump(uint8_t start = 0x0, uint8_t end = 0x7F);
+    mpu_err_t readBit(uint8_t regAddr, uint8_t bitNum, uint8_t* data);
+    mpu_err_t readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t* data);
+    mpu_err_t readByte(uint8_t regAddr, uint8_t* data);
+    mpu_err_t readBytes(uint8_t regAddr, size_t length, uint8_t* data);
+    mpu_err_t writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data);
+    mpu_err_t writeBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data);
+    mpu_err_t writeByte(uint8_t regAddr, uint8_t data);
+    mpu_err_t writeBytes(uint8_t regAddr, size_t length, uint8_t* data);
+    mpu_err_t registerDump(uint8_t start = 0x0, uint8_t end = 0x7F);
     //! \}
     //! \name Sensor readings
     //! \{
@@ -256,7 +252,7 @@ class MPU
     mpu_bus_t* bus;         /*!< Communication bus pointer, I2C / SPI */
     //mpu_addr_handle_t addr; /*!< I2C address / SPI device handle */
     uint8_t buffer[16];     /*!< Commom buffer for temporary data */
-    int err;          /*!< Holds last error code */
+    mpu_err_t err;          /*!< Holds last error code */
 };
 
 }  // namespace mpud
@@ -266,96 +262,91 @@ class MPU
 // ==============
 namespace mpud
 {
-/*! Default Constructor. */
-inline MPU::MPU() : MPU(){};
-/**
- * @brief Contruct a MPU in the given communication bus.
- * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
- */
-inline MPU::MPU(mpu_bus_t* bus) : MPU(bus) {}
-// inline MPU::MPU(mpu_bus_t& bus) : MPU(bus, MPU_DEFAULT_ADDR_HANDLE) {}
-/**
- * @brief Construct a MPU in the given communication bus and address.
- * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
- * @param addr I2C address (`mpu_i2caddr_t`) or SPI device handle (`spi_device_handle_t`).
- */
-// inline MPU::MPU(mpu_bus_t& bus, mpu_addr_handle_t addr) : bus{&bus}, addr{addr}, buffer{0}, err{ESP_OK} {}
-/** Default Destructor, does nothing. */
-inline MPU::~MPU() = default;
-/**
- * @brief Set communication bus.
- * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
- */
-inline MPU& MPU::setBus(mpu_bus_t* bus)
-{
-    this->bus = bus;
-    return *this;
-}
-/**
- * @brief Return communication bus object.
- */
-inline mpu_bus_t* MPU::getBus()
-{
-    return bus;
-}
-/**
- * @brief Set I2C address or SPI device handle.
- * @param addr I2C address (`mpu_i2caddr_t`) or SPI device handle (`spi_device_handle_t`).
- */
-/*
-inline MPU& MPU::setAddr(mpu_addr_handle_t addr)
-{
-    this->addr = addr;
-    return *this;
-}
-*/
-/**
- * @brief Return I2C address or SPI device handle.
- */
-/*
-inline mpu_addr_handle_t MPU::getAddr()
-{
-    return addr;
-}
-*/
-/*! Return last error code. */
 
-inline int MPU::lastError()
+
+/*! Default Constructor. */
+inline MPU::MPU() : MPU(MPU_DEFAULT_BUS){};
+/**
+//  * @brief Contruct a MPU in the given communication bus.
+//  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
+//  */
+// inline MPU::MPU(mpu_bus_t& bus) : MPU(bus, MPU_DEFAULT_ADDR_HANDLE) {}
+// /**
+//  * @brief Construct a MPU in the given communication bus and address.
+//  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
+//  * @param addr I2C address (`mpu_i2caddr_t`) or SPI device handle (`spi_device_handle_t`).
+//  */
+// inline MPU::MPU(mpu_bus_t& bus, mpu_addr_handle_t addr) : bus{&bus}, addr{addr}, buffer{0}, err{ESP_OK} {}
+// /** Default Destructor, does nothing. */
+// inline MPU::~MPU() = default;
+// /**
+//  * @brief Set communication bus.
+//  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
+//  */
+// inline MPU& MPU::setBus(mpu_bus_t* bus)
+// {
+//     this->bus = bus;
+//     return *this;
+// }
+// /**
+//  * @brief Return communication bus object.
+//  */
+// inline mpu_bus_t& MPU::getBus()
+// {
+//     return bus;
+// }
+// /**
+//  * @brief Set I2C address or SPI device handle.
+//  * @param addr I2C address (`mpu_i2caddr_t`) or SPI device handle (`spi_device_handle_t`).
+//  */
+// inline MPU& MPU::setAddr(mpu_addr_handle_t addr)
+// {
+//     this->addr = addr;
+//     return *this;
+// }
+// /**
+//  * @brief Return I2C address or SPI device handle.
+//  */
+// inline mpu_addr_handle_t MPU::getAddr()
+// {
+//     return addr;
+// }
+// /*! Return last error code. */
+
+// inline int MPU::lastError()
+// {
+//     return err;
+// }
+// /*! Read a single bit from a register*/
+
+
+inline mpu_err_t MPU::readBit(uint8_t regAddr, uint8_t bitNum, uint8_t* data)
 {
-    return err;
-}
-/*! Read a single bit from a register*/
-inline bool MPU::readBit(uint8_t regAddr, uint8_t bitNum, uint8_t* data)
-{
-    static bool _err = readBits(regAddr, bitNum, 1, data);
-    return _err;
+    return err = readBits(regAddr, bitNum, 1, data);
 }
 /*! Read a range of bits from a register */
-inline bool MPU::readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t* data)
+inline mpu_err_t MPU::readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t* data)
 {
     uint8_t buffer;
-    bool _err = readByte(regAddr, &buffer);
-    if(!_err) {
+    err = readByte(regAddr, &buffer);
+    if(!err) {
         uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
         buffer &= mask;
         buffer >>= (bitStart - length + 1);
         *data = buffer;
     }
-    return _err;    
+    return err;    
 }
 /*! Read a single register */
-inline bool MPU::readByte(uint8_t regAddr, uint8_t* data)
+inline mpu_err_t MPU::readByte(uint8_t regAddr, uint8_t* data)
 {
-    static bool _err = readBytes(regAddr,1,data);
-    return _err;
+    return err = readBytes(regAddr,1,data);
 }
 /*! Read data from sequence of registers */
-inline bool MPU::readBytes(uint8_t regAddr, size_t length, uint8_t* data)
+inline mpu_err_t MPU::readBytes(uint8_t regAddr, size_t length, uint8_t* data)
 {
-    static bool _err = false;
-
     #ifdef CONFIG_MPU_SPI
-        _err = bus->read(data, length, regAddr);
+        bus->read(data, length, regAddr);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
             if (!_err) { 
@@ -368,31 +359,45 @@ inline bool MPU::readBytes(uint8_t regAddr, size_t length, uint8_t* data)
     #elif defined CONFIG_MPU_I2C
 
     #endif
-    return _err;
+    return err;
 }
 /*! Write a single bit to a register */
-inline bool MPU::writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data)
+inline mpu_err_t MPU::writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data)
 {
+    uint8_t buffer;
+    mpu_err_t err = readByte(regAddr, &buffer);
+    if (err) return err;
+    buffer = data ? (buffer | (1 << bitNum)) : (buffer & ~(1 << bitNum));
+    return writeByte(regAddr, buffer);
+
     // return err = bus->writeBit(addr, regAddr, bitNum, data);
 }
 /*! Write a range of bits to a register */
-inline bool MPU::writeBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data)
+inline mpu_err_t MPU::writeBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data)
 {
+    uint8_t buffer;
+    err = readByte(regAddr, &buffer);
+    if (err) return err;
+    uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+    data <<= (bitStart - length + 1);
+    data &= mask;
+    buffer &= ~mask;
+    buffer |= data;
+    return writeByte(regAddr, buffer);
+
     // return err = bus->writeBits(addr, regAddr, bitStart, length, data);
 }
 /*! Write a value to a register */
-inline bool MPU::writeByte(uint8_t regAddr, uint8_t data)
+inline mpu_err_t MPU::writeByte(uint8_t regAddr, uint8_t data)
 {
     // return err = bus->writeByte(addr, regAddr, data);
-
+    return err = writeBytes(regAddr, 1, &data);
 }
 /*! Write a sequence to data to a sequence of registers */
-inline bool MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
+inline mpu_err_t MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
 {
-    static bool _err = false;
-
     #ifdef CONFIG_MPU_SPI
-        _err = bus->write(data, length, &regAddr, 1);
+        bus->write(data, length, &regAddr, 1);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
             if (!_err) { 
@@ -405,9 +410,8 @@ inline bool MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
     #elif defined CONFIG_MPU_I2C
 
     #endif
-    //return _err;
+    return err;
 
-    // return err = bus->write(data, length, &regAddr, 1);
 }
 
 }  // namespace mpud
