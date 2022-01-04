@@ -49,6 +49,8 @@ namespace mpud
  * */
 int MPU::initialize()
 {
+    
+     if (MPU_ERR_CHECK(bus.begin())) return err;
     // reset device (wait a little to clear all registers)
     if (MPU_ERR_CHECK(reset())) return err;
     // wake-up the device (power on-reset state is asleep for some models)
@@ -1259,7 +1261,7 @@ int MPU::readFIFO(size_t length, uint8_t* data)
 /**
  * @brief Write data to FIFO buffer.
  * */
-mpu_err_t MPU::writeFIFO(size_t length, const uint8_t* data)
+mpu_err_t MPU::writeFIFO(size_t length, uint8_t* data)
 {
     return MPU_ERR_CHECK(writeBytes(regs::FIFO_R_W, length, data));
 }

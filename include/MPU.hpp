@@ -30,21 +30,19 @@
 #include "config_mpu_lib.h"
 
 #ifdef CONFIG_MPU_I2C
-// #if !defined I2CBUS_COMPONENT_TRUE
-// #error ''MPU component requires I2Cbus library. \
-// Make sure the I2Cbus library is included in your components directory. \
-// See MPUs README.md for more information.''
-// #endif
-
 #include <Adafruit_I2CDevice.h>
+#if !defined Adafruit_I2CDevice_h
+#error ''MPU component requires Adafruit I2CDevice library. \
+Make sure the library is existing in your include directory. \''
+#endif
+
 
 #elif defined CONFIG_MPU_SPI
-// #if !defined SPIBUS_COMPONENT_TRUE
-// #error ''MPU component requires SPIbus library. \
-// Make sure the SPIbus library is included in your components directory. \
-// See MPUs README.md for more information.''
-// #endif
 #include <Adafruit_SPIDevice.h>
+#if !defined Adafruit_SPIDevice_h
+#error ''MPU component requires Adafruit SPIDevice library. \
+Make sure the library is existing in your include directory. \''
+#endif
 #else
 #error ''MPU communication protocol not specified''
 #endif
@@ -69,8 +67,10 @@ class MPU
     //! \name Constructors / Destructor
     //! \{
     MPU();
-    explicit MPU(mpu_bus_t& bus);
+    // explicit MPU(mpu_bus_t& bus);
     // MPU(mpu_bus_t& bus, mpu_addr_handle_t addr);
+    MPU(mpu_device_specifier_t addr_or_cs);
+
     ~MPU();
     //! \}
     //! \name Basic
@@ -141,7 +141,7 @@ class MPU
     int resetFIFO();
     uint16_t getFIFOCount();
     int readFIFO(size_t length, uint8_t* data);
-    mpu_err_t writeFIFO(size_t length, const uint8_t* data);
+    mpu_err_t writeFIFO(size_t length, uint8_t* data);
     fifo_mode_t getFIFOMode();
     fifo_config_t getFIFOConfig();
     bool getFIFOEnabled();
@@ -249,7 +249,7 @@ class MPU
     int getBiases(accel_fs_t accelFS, gyro_fs_t gyroFS, raw_axes_t* accelBias, raw_axes_t* gyroBias,
                         bool selftest);
 
-    mpu_bus_t* bus;         /*!< Communication bus pointer, I2C / SPI */
+    mpu_bus_t bus;         /*!< Communication bus pointer, I2C / SPI */
     //mpu_addr_handle_t addr; /*!< I2C address / SPI device handle */
     uint8_t buffer[16];     /*!< Commom buffer for temporary data */
     mpu_err_t err;          /*!< Holds last error code */
@@ -265,7 +265,7 @@ namespace mpud
 
 
 /*! Default Constructor. */
-inline MPU::MPU() : MPU(MPU_DEFAULT_BUS){};
+// inline MPU::MPU() : MPU(MPU_DEFAULT_BUS){};
 /**
 //  * @brief Contruct a MPU in the given communication bus.
 //  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
@@ -276,9 +276,10 @@ inline MPU::MPU() : MPU(MPU_DEFAULT_BUS){};
 //  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
 //  * @param addr I2C address (`mpu_i2caddr_t`) or SPI device handle (`spi_device_handle_t`).
 //  */
+inline MPU::MPU(mpu_device_specifier_t addr_or_cs) : bus(addr_or_cs) {}
 // inline MPU::MPU(mpu_bus_t& bus, mpu_addr_handle_t addr) : bus{&bus}, addr{addr}, buffer{0}, err{ESP_OK} {}
 // /** Default Destructor, does nothing. */
-// inline MPU::~MPU() = default;
+inline MPU::~MPU() = default;
 // /**
 //  * @brief Set communication bus.
 //  * @param bus Bus protocol object of type `I2Cbus` or `SPIbus`.
@@ -313,12 +314,12 @@ inline MPU::MPU() : MPU(MPU_DEFAULT_BUS){};
 // }
 // /*! Return last error code. */
 
-// inline int MPU::lastError()
-// {
-//     return err;
-// }
-// /*! Read a single bit from a register*/
+inline int MPU::lastError()
+{
+    return err;
+}
 
+// /*! Read a single bit from a register*/
 
 inline mpu_err_t MPU::readBit(uint8_t regAddr, uint8_t bitNum, uint8_t* data)
 {
@@ -346,7 +347,7 @@ inline mpu_err_t MPU::readByte(uint8_t regAddr, uint8_t* data)
 inline mpu_err_t MPU::readBytes(uint8_t regAddr, size_t length, uint8_t* data)
 {
     #ifdef CONFIG_MPU_SPI
-        bus->read(data, length, regAddr);
+        bus.read(data, length, regAddr);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
             if (!_err) { 
@@ -397,7 +398,7 @@ inline mpu_err_t MPU::writeByte(uint8_t regAddr, uint8_t data)
 inline mpu_err_t MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
 {
     #ifdef CONFIG_MPU_SPI
-        bus->write(data, length, &regAddr, 1);
+        bus.write(data, length, &regAddr, 1);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
             if (!_err) { 
