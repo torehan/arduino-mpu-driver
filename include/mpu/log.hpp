@@ -21,6 +21,7 @@
 #include "DebugLog.h"
 #include "config_mpu_lib.h"
 #include "types.hpp"
+
 // Note: declare TAG before include this header
 // Note: include only in .cpp files from this library
 
@@ -29,18 +30,6 @@
 #define MPU_LOGI(format,...)  LOG_INFO(format, ##__VA_ARGS__)
 #define MPU_LOGD(format,...)  LOG_DEBUG(format, ##__VA_ARGS__) 
 #define MPU_LOGV(format,...)  LOG_TRACE(format, ##__VA_ARGS__) 
-
-#define MPU_LOGEMSG(msg, format, ...) MPU_LOGE("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
-#define MPU_LOGWMSG(msg, format, ...) MPU_LOGW("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
-#define MPU_LOGIMSG(msg, format, ...) MPU_LOGI("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
-#define MPU_LOGDMSG(msg, format, ...) MPU_LOGD("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
-#define MPU_LOGVMSG(msg, format, ...) MPU_LOGV("%s()-> %s" format, __FUNCTION__, msg, ##__VA_ARGS__)
-
-#ifdef CONFIG_MPU_LOG_ERROR_TRACES
-#define MPU_ERR_CHECK(x) mpud::log::errorCheckLogger(x, __ASSERT_FUNC, __LINE__, #x)
-#else
-#define MPU_ERR_CHECK(x) (x)
-#endif
 
 /*! MPU Driver namespace */
 namespace mpud
@@ -72,14 +61,6 @@ static const char TIMEOUT[]               = "Timeout";
 static const char EMPTY[]                 = "";
 
 }  // namespace msgs
-
-static inline int errorCheckLogger(int x, const char* func, const int line, const char* expr)
-{
-    if (x) LOG_ERROR("func:%s @ line:%d, expr:\"%s\", error:0x%X ", func, line, expr, x);
-    // if (x) MPU_LOGE("func:%s @ line:%d, expr:\"%s\", error:0x%X ", func, line, expr, x);
-    
-    return x;
-}
 
 }  // namespace log
 
