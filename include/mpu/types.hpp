@@ -49,15 +49,19 @@ typedef enum {
 
 
 #ifdef CONFIG_MPU_LOG_LEVEL_DEFAULT
-    #define CONFIG_MPU_LOG_LEVEL   0
+    #define CONFIG_MPU_LOG_LEVEL   3
 #elif defined CONFIG_MPU_LOG_LEVEL_NONE
     #define CONFIG_MPU_LOG_LEVEL   0
 #elif defined CONFIG_MPU_LOG_LEVEL_ERROR
-    #define CONFIG_MPU_LOG_LEVEL   50
+    #define CONFIG_MPU_LOG_LEVEL   1
+#elif defined CONFIG_MPU_LOG_LEVEL_WARN
+    #define CONFIG_MPU_LOG_LEVEL   2
 #elif defined CONFIG_MPU_LOG_LEVEL_INFO
-    #define CONFIG_MPU_LOG_LEVEL   30
+    #define CONFIG_MPU_LOG_LEVEL   3
 #elif defined CONFIG_MPU_LOG_LEVEL_DEBUG
-    #define CONFIG_MPU_LOG_LEVEL   20
+    #define CONFIG_MPU_LOG_LEVEL   4
+#elif defined CONFIG_MPU_LOG_LEVEL_TRACE
+    #define CONFIG_MPU_LOG_LEVEL   5
 #elif defined CONFIG_MPU_LOG_LEVEL_VERBOSE
 #else
 #error "CONFIG_MPU_LOG_LEVEL not !defined"
@@ -84,15 +88,14 @@ typedef enum {
 static constexpr mpu_i2caddr_t MPU_DEFAULT_I2CADDRESS = MPU_I2CADDRESS_AD0_LOW;
 
 #ifdef CONFIG_MPU_I2C
-typedef Adafruit_I2CDevice mpu_bus_t;                 /*!< Communication bus type, `I2Cbus` or `SPIbus`. */
+typedef Adafruit_I2CDevice mpu_bus_t;               /*!< Communication bus type, `I2Cbus` or `SPIbus`. */
 typedef uint8_t mpu_device_specifier_t;
 // mpu_bus_t MPU_DEFAULT_BUS = Adafruit_I2CDevice((uint8_t)MPU_DEFAULT_I2CADDRESS);
 #elif defined CONFIG_MPU_SPI
-typedef Adafruit_SPIDevice mpu_bus_t;
+typedef Adafruit_SPIDevice mpu_bus_t;               /*!< Communication bus type, `I2Cbus` or `SPIbus`. */
 typedef int8_t mpu_device_specifier_t;
 #define SPIDEVICE_CS 10
 // mpu_bus_t MPU_DEFAULT_BUS = Adafruit_SPIDevice(SPIDEVICE_CS);
-
 #endif
 
 #if defined CONFIG_MPU6050
