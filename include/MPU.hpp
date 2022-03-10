@@ -346,6 +346,7 @@ inline void MPU::readBytes(uint8_t regAddr, size_t length, uint8_t* data)
     #ifdef CONFIG_MPU_SPI
         
         bus.write_then_read(&addr, 1, data, length);
+        delayMicroseconds(1);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
             for(size_t i = 0; i < length; i++){
@@ -393,9 +394,8 @@ inline void MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
     uint8_t _regAddr = regAddr & SPIBUS_WRITE;
     
     #ifdef CONFIG_MPU_SPI
-
         bus.write(data, length, &_regAddr, 1);
-
+        delayMicroseconds(1);
         #if defined CONFIG_SPIBUS_LOG_READWRITES
 
                 for(size_t i = 0; i < length; i++){

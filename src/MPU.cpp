@@ -64,6 +64,7 @@ void MPU::initialize()
     bus.begin();
     // reset device (wait a little to clear all registers)
     reset();
+    delayMicroseconds(10);
     // wake-up the device (power on-reset state is asleep for some models)
     setSleep(false);
         // disable MPU's I2C slave module when using SPI
@@ -84,21 +85,18 @@ void MPU::initialize()
 
     // set Full Scale range
     setGyroFullScale(GYRO_FS_500DPS);
-    delayNanoseconds(1);
     setAccelFullScale(ACCEL_FS_4G);
     // set Digital Low Pass Filter to get smoother data
-    delayNanoseconds(1);
     setDigitalLowPassFilter(DLPF_42HZ);
 
         // setup magnetometer
 #ifdef CONFIG_MPU_AK89xx
     compassInit();
 #ifdef CONFIG_MPU_AK8963
-    delayNanoseconds(1);
+    delayMicroseconds(1);
     compassSetSensitivity(MAG_SENSITIVITY_0_15_uT);
 #endif
 #endif
-    delayNanoseconds(1);
     // set sample rate to 100Hz
     setSampleRate(100);
     MPU_LOGI("Initialization complete");
