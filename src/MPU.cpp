@@ -49,8 +49,6 @@ namespace mpud
  * */
 void MPU::initialize()
 {
-    MPU_LOGI("here");
-
     // The default log_leval is DebugLogLevel::LVL_INFO
     // 0: NONE, 1: ERROR, 2: WARN, 3: INFO, 4: DEBUG, 5: TRACE
     switch (CONFIG_MPU_LOG_LEVEL) {
@@ -85,21 +83,22 @@ void MPU::initialize()
 #endif
 
     // set Full Scale range
-    PRINT("setGyroFullScale"); setGyroFullScale(GYRO_FS_500DPS);
-    PRINT("getGyroFullScale", getGyroFullScale()); 
-
-    PRINT("setAccelFullScale"); setAccelFullScale(ACCEL_FS_4G);
+    setGyroFullScale(GYRO_FS_500DPS);
+    delayNanoseconds(1);
+    setAccelFullScale(ACCEL_FS_4G);
     // set Digital Low Pass Filter to get smoother data
-    PRINT("setDigitalLowPassFilter"); setDigitalLowPassFilter(DLPF_42HZ);
+    delayNanoseconds(1);
+    setDigitalLowPassFilter(DLPF_42HZ);
 
         // setup magnetometer
 #ifdef CONFIG_MPU_AK89xx
     compassInit();
 #ifdef CONFIG_MPU_AK8963
+    delayNanoseconds(1);
     compassSetSensitivity(MAG_SENSITIVITY_0_15_uT);
 #endif
 #endif
-
+    delayNanoseconds(1);
     // set sample rate to 100Hz
     setSampleRate(100);
     MPU_LOGI("Initialization complete");
@@ -1459,7 +1458,7 @@ void MPU::readAuxI2CRxData(size_t length, uint8_t* data, size_t skip)
 {
     if (length + skip > 24) {
         MPU_LOGE(msgs::INVALID_LENGTH, length, ", mpu has only 24 external sensor data registers!");
-        MPU_ERR_INVALID_SIZE;
+        // MPU_ERR_INVALID_SIZE;
     }
 // check if I2C Master is enabled, just for warning and debug
 #if CONFIG_MPU_LOG_LEVEL >= MPU_LOG_WARN
@@ -1512,7 +1511,7 @@ void MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
     const bool kAuxI2CEnabled = getAuxI2CEnabled();
     if (!kAuxI2CEnabled) {
         MPU_LOGE(msgs::AUX_I2C_DISABLED, ", must enable first");
-        MPU_ERR_INVALID_STATE;
+        // MPU_ERR_INVALID_STATE;
     }
     // data for regs::I2C_SLV4_ADDR
     buffer[0] = AUXI2C_WRITE << regs::I2C_SLV_RNW_BIT;
@@ -1535,19 +1534,19 @@ void MPU::auxI2CWriteByte(uint8_t devAddr, uint8_t regAddr, const uint8_t data)
         readByte(regs::I2C_MST_STATUS, &status);
         if (status & (1 << regs::I2CMST_STAT_SLV4_NACK_BIT)) {
             MPU_LOGW(msgs::AUX_I2C_SLAVE_NACK);
-            MPU_ERR_NOT_FOUND;
+            // MPU_ERR_NOT_FOUND;
         }
         if (status & (1 << regs::I2CMST_STAT_LOST_ARB_BIT)) {
             MPU_LOGW(msgs::AUX_I2C_LOST_ARB);
-            MPU_FAIL;
+            // MPU_FAIL;
         }
         if (millis() >= endTick) {
             MPU_LOGE(msgs::TIMEOUT, ". Aux I2C might've hung. Restart it.");
-            MPU_BUS_TIMEOUT;
+            // MPU_BUS_TIMEOUT;
         }
     } while (!(status & (1 << regs::I2C_SLV4_DONE_INT_BIT)));
 
-    MPU_OK;
+    // MPU_OK;
 }
 
 /**
@@ -1570,7 +1569,7 @@ void MPU::auxI2CReadByte(uint8_t devAddr, uint8_t regAddr, uint8_t* data)
     const bool kAuxI2CEnabled = getAuxI2CEnabled();
     if (!kAuxI2CEnabled) {
         MPU_LOGE(msgs::AUX_I2C_DISABLED, ", must enable first");
-        MPU_ERR_INVALID_STATE;
+        // MPU_ERR_INVALID_STATE;
     }
     // data for regs::I2C_SLV4_ADDR
     buffer[0] = AUXI2C_READ << regs::I2C_SLV_RNW_BIT;
@@ -1591,15 +1590,15 @@ void MPU::auxI2CReadByte(uint8_t devAddr, uint8_t regAddr, uint8_t* data)
         readByte(regs::I2C_MST_STATUS, &status);
         if (status & (1 << regs::I2CMST_STAT_SLV4_NACK_BIT)) {
             MPU_LOGW(msgs::AUX_I2C_SLAVE_NACK);
-            MPU_ERR_NOT_FOUND;
+            // MPU_ERR_NOT_FOUND;
         }
         if (status & (1 << regs::I2CMST_STAT_LOST_ARB_BIT)) {
             MPU_LOGW(msgs::AUX_I2C_LOST_ARB);
-            MPU_FAIL;
+            // MPU_FAIL;
         }
         if (millis() >= endTick) {
             MPU_LOGE(msgs::TIMEOUT, ". Aux I2C might've hung. Restart it.");
-            MPU_BUS_TIMEOUT;
+            // MPU_BUS_TIMEOUT;
         }
     } while (!(status & (1 << regs::I2C_SLV4_DONE_INT_BIT)));
     // get read value
@@ -1658,8 +1657,8 @@ bool MPU::getFsyncEnabled()
  */
 void MPU::registerDump(uint8_t start, uint8_t end)
 {
-    constexpr uint8_t kNumOfRegs = 128;
-    if (end - start < 0 || start >= kNumOfRegs || end >= kNumOfRegs) MPU_FAIL;
+    // constexpr uint8_t kNumOfRegs = 128;
+    // if (end - start < 0 || start >= kNumOfRegs || end >= kNumOfRegs) MPU_FAIL;
     MPU_LOGD(LOG_COLOR_W ">> " CONFIG_MPU_CHIP_MODEL " register dump:" LOG_RESET_COLOR "\n");
     uint8_t data;
     for (int i = start; i <= end; i++) {
