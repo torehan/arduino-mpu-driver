@@ -393,7 +393,6 @@ inline void MPU::writeBytes(uint8_t regAddr, size_t length, uint8_t* data)
     uint8_t _regAddr = regAddr & SPIBUS_WRITE;
     
     #ifdef CONFIG_MPU_SPI
-
         bus.write(data, length, &_regAddr, 1);
 
         #if defined CONFIG_SPIBUS_LOG_READWRITES
