@@ -19,11 +19,9 @@
 #include "mpu/math.hpp"
 #include "mpu/registers.hpp"
 #include "mpu/types.hpp"
-#include "config_mpu_lib.h"
-
-// static const char* TAG = CONFIG_MPU_CHIP_MODEL;
-
 #include "mpu/log.hpp"
+
+#include "config_mpu_lib.h"
 
 /*! MPU Driver namespace */
 namespace mpud
