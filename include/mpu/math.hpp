@@ -68,6 +68,15 @@ inline float_axes_t accelGravity(const raw_axes_t& raw_axes, const accel_fs_t fs
     return axes;
 }
 
+    inline float_axes_t accelMeterPerSecSquared(const raw_axes_t& raw_axes, const accel_fs_t fs)
+{
+    float_axes_t axes;
+    axes.x = raw_axes.x * accelResolution(fs) * 9.80665;
+    axes.y = raw_axes.y * accelResolution(fs) * 9.80665;
+    axes.z = raw_axes.z * accelResolution(fs) * 9.80665;
+    return axes;
+}
+    
 inline float gyroDegPerSec(const int16_t axis, const gyro_fs_t fs)
 {
     return axis * gyroResolution(fs);
